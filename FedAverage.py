@@ -9,6 +9,21 @@ import time
 start_time = time.time()
 
 def parse_arguments():
+    '''
+    data:数据集，默认mnist
+    nclient:客户端的数量，默认100
+    nclass:数据集标签类别数量，默认10
+    ncpc:分给每个客户端类别的数量，默认2
+    model:选用的模型，默认mnist_fully_connected_IN
+    mode:DP的模式，分为CPD和LDP，默认LDP
+    round:训练的轮次，默认150
+    eps:隐私预算的大小，默认8
+    physical_bs:Opacus LDP库的最大物理批次的尺寸，默认3
+    sr:每轮差分隐私机制的采样率，默认1.0
+    lr:学习率，默认0.1
+    flr:学习率，默认0.1
+    E：文件前缀
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='mnist',
                         choices=['mnist','cifar10','cifar100','fashionmnist','emnist','purchase','chmnist'])
@@ -33,26 +48,26 @@ def parse_arguments():
 
 args = parse_arguments()
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-today = date.today().isoformat()
-DATA_NAME = args.data
-NUM_CLIENTS = args.nclient
-NUM_CLASSES = args.nclass
-NUM_CLASES_PER_CLIENT= args.ncpc
-MODEL = args.model
-MODE = args.mode
-EPOCHS = 1
-ROUNDS = args.round
-BATCH_SIZE = 64
-LEARNING_RATE_DIS = args.lr
-LEARNING_RATE_F = args.flr
-mp_bs = args.physical_bs
-target_epsilon = args.epsilon
-target_delta = 1e-3
-sample_rate=args.sr
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')  #判断GPU是否可用
+today = date.today().isoformat()   #返回一个表示当前本地日期的date对象，并将格式改为'YYYY-MM-DD'的字符串
+DATA_NAME = args.data   #数据集名称
+NUM_CLIENTS = args.nclient  #客户端的数量
+NUM_CLASSES = args.nclass  #数据集标签的数量
+NUM_CLASES_PER_CLIENT= args.ncpc   #分给每个客户端标签的数量
+MODEL = args.model   #训练使用的模型
+MODE = args.mode   #判断是CDP还是LDP
+EPOCHS = 1  #本地训练轮次
+ROUNDS = args.round   #全局训练轮次
+BATCH_SIZE = 64  #本地每次训练的批量大小
+LEARNING_RATE_DIS = args.lr  #学习率
+LEARNING_RATE_F = args.flr  #不知道干嘛的
+mp_bs = args.physical_bs  #不知道干嘛的
+target_epsilon = args.epsilon  #隐私预算
+target_delta = 1e-3  #差分隐私高斯机制的delta
+sample_rate=args.sr  #采样率
 
-os.makedirs(f'log/E{args.E}', exist_ok=True)
-user_param = {'disc_lr': LEARNING_RATE_DIS, 'epochs': EPOCHS}
+os.makedirs(f'log/E{args.E}', exist_ok=True)   #判断EX文件存不存在，不存在就创建
+user_param = {'disc_lr': LEARNING_RATE_DIS, 'epochs': EPOCHS}   #参数字典，包含了学习率以及本地训练轮次
 server_param = {}
 if MODE == "LDP":
     user_obj = LDPUser
