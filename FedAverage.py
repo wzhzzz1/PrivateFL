@@ -18,7 +18,7 @@ def parse_arguments():
     mode:DP的模式，分为CPD和LDP，默认LDP
     round:训练的轮次，默认150
     eps:隐私预算的大小，默认8
-    physical_bs:Opacus LDP库的最大物理批次的尺寸，默认3
+    physical_bs:这个有点奇怪，不是很理解，看解释是为了解决泊松分布造成的采样偏差问腿，实际跑起来设置到64就很容易显存爆满
     sr:每轮差分隐私机制的采样率，默认1.0
     lr:学习率，默认0.1
     flr:学习率，默认0.1
@@ -95,11 +95,12 @@ elif DATA_NAME == 'chmnist':
     root = 'data/CHMNIST'
 else: root = '~/torch_data'
 
+#数据集名字，目录，客户端数量，批次大小，每个客户端分配的标签数量，标签总数量
 train_dataloaders, test_dataloaders = gen_random_loaders(DATA_NAME, root, NUM_CLIENTS,
                                                          BATCH_SIZE, NUM_CLASES_PER_CLIENT, NUM_CLASSES)
 
 print(user_param)
-users = [user_obj(i, device, MODEL, None, NUM_CLASSES, train_dataloaders[i], **user_param) for i in range(NUM_CLIENTS)]
+users = [user_obj(i, device, MODEL, None, NUM_CLASSES, train_dataloaders[i], **user_param) for i in range(NUM_CLIENTS)]   #在函数调用中，**用于解包字典，将字典中的每个键值对作为关键字参数传递给函数。
 server = server_obj(device, MODEL, None, NUM_CLASSES, **server_param)
 for i in range(NUM_CLIENTS):
     users[i].set_model_state_dict(server.get_model_state_dict())

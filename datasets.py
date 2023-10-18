@@ -18,8 +18,8 @@ def get_datasets(data_name, dataroot, preprocess = None):
     """
 
     if data_name =='cifar10':
-        normalization = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        transform = transforms.Compose([transforms.ToTensor(), transforms.Resize(120), normalization]) if preprocess==None else preprocess
+        normalization = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))#这是归一化操作。它将输入图像的每个通道的像素值从范围 [0, 1] 缩放到范围 [-1, 1]，使图像的均值为0，标准差为1。这通常是为了更好地适应神经网络的训练，以提高训练的稳定性。
+        transform = transforms.Compose([transforms.ToTensor(), transforms.Resize(120), normalization]) if preprocess==None else preprocess#组合变换，这个就很基本了，转化张量，重定义尺寸，标准化
 
         data_obj = CIFAR10
     elif data_name =='cifar100':
@@ -102,7 +102,9 @@ def get_num_classes_samples(dataset):
             data_labels_list = np.array(dataset.targets)
         else:
             data_labels_list = dataset.targets
-    classes, num_samples = np.unique(data_labels_list, return_counts=True)
+    #classes 包含了数据集中的唯一类别，其中每个元素代表一个不同的类别。
+    #num_samples 包含了每个唯一类别出现的次数，即每个类别的样本数量。
+    classes, num_samples = np.unique(data_labels_list, return_counts=True)  #return_counts=True 参数被设置为 True，这表示要返回唯一值的同时，还要返回它们在原始数组中出现的次数。
     num_classes = len(classes)
     return num_classes, num_samples, data_labels_list
 
@@ -117,13 +119,13 @@ def gen_classes_per_node(dataset, num_users, classes_per_user=2, high_prob=0.6, 
     :param low_prob: lowest prob sampled
     :return: dictionary mapping between classes and proportions, each entry refers to other client
     """
-    num_classes, num_samples, _ = get_num_classes_samples(dataset)
+    num_classes, num_samples, _ = get_num_classes_samples(dataset)  #_是占位符，表示不打算用第三个返回值，这样又不会报错
 
     # -------------------------------------------#
     # Divide classes + num samples for each user #
     # -------------------------------------------#
     # print(num_classes)
-    assert (classes_per_user * num_users) % num_classes == 0, "equal classes appearance is needed"
+    assert (classes_per_user * num_users) % num_classes == 0, "equal classes appearance is needed" #它检查每个客户端获得的类别数量是否能够整除总的类别数量。如果条件不满足，即无法等分类别给每个客户端，就会引发 AssertionError
     count_per_class = (classes_per_user * num_users) // num_classes
     class_dict = {}
     for i in range(num_classes):
@@ -225,12 +227,12 @@ def gen_random_loaders(data_name, data_path, num_users, bz, num_classes_per_user
     :param classes_per_user: number of classes assigned to each client
     :return: train/val/test loaders of each client, list of pytorch dataloaders
     """
-    loader_params = {"batch_size": bz, "shuffle": False, "pin_memory": True, "num_workers": 0}
+    loader_params = {"batch_size": bz, "shuffle": False, "pin_memory": True, "num_workers": 0}  #1：参数大小 2：是否随机重排 3：通常用于加速数据加载 4：设置为 0，表示在加载数据时不使用多个工作进程
     dataloaders = []
-    datasets = get_datasets(data_name, data_path, preprocess=preprocess)
+    datasets = get_datasets(data_name, data_path, preprocess=preprocess)  #datasets是包含训练集和测试集的元组
     cls_partitions = None
-    distribution = np.zeros((num_users, num_classes))
-    for i, d in enumerate(datasets):
+    distribution = np.zeros((num_users, num_classes))  #这里distribution的行是用户的数量，列的标签的数量
+    for i, d in enumerate(datasets):  #i是索引，d是数据集对象
         if i == 0:
             cls_partitions = gen_classes_per_node(d, num_users, num_classes_per_user)
             print(cls_partitions)
