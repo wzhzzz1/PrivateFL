@@ -121,7 +121,7 @@ print(user_param)
 
 users = [user_obj(i, device, MODEL, None, NUM_CLASSES, train_dataloaders[i], **user_param) for i in    #只考虑LDPUser，这行代码为生成NUM_CLIENTS数量的LDP客户端对象，并初始化
          range(NUM_CLIENTS)]  # 在函数调用中，**用于解包字典，将字典中的每个键值对作为关键字参数传递给函数。
-server = server_obj(device, MODEL, None, NUM_CLASSES, **server_param) #只考虑LDPserver，这行代码生成一个LDPServer类对象，初始化时调用了父类的构造函数方法
+server = server_obj(device, MODEL[:-3], None, NUM_CLASSES, **server_param) #只考虑LDPserver，这行代码生成一个LDPServer类对象，初始化时调用了父类的构造函数方法
 for i in range(NUM_CLIENTS):
     users[i].set_model_state_dict(server.get_model_state_dict())  #初始化全局模型并分发到每个客户端
 best_acc = 0
@@ -131,7 +131,7 @@ for round in range(ROUNDS):
     if MODE == "LDP":
         weights_agg = agg_weights([users[index].get_model_state_dict() for index in random_index])   #将每个客户端的参数加起来求平均，包括个性化模型和本地模型的参数
         for i in range(NUM_CLIENTS):
-            users[i].set_model_state_dict(weights_agg)   #在赋值时，仅仅会改变本地模型的参数，人性化模型的参数不变
+            users[i].set_model_state_dict(weights_agg)   #在赋值时，仅仅会改变本地模型的参数，个性化模型的参数不变
     else:
         server.agg_updates([users[index].get_model_state_dict() for index in random_index])
         for i in range(NUM_CLIENTS):
