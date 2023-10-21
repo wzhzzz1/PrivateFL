@@ -1,3 +1,13 @@
+'''
+@author:Wang Zihang
+date:2023.10.20
+#undo:
+1.添加没有噪音和个性化的联邦学习算法
+2.添加个性化模型，然后进行实验
+3.将整个项目用ray重构，实现基于神经网络的联邦平台
+'''
+
+#https://opacus.ai/api/
 from modelUtil import *
 from datasets import *
 from FedUser import CDPUser, LDPUser, opacus
@@ -108,25 +118,26 @@ train_dataloaders, test_dataloaders = gen_random_loaders(DATA_NAME, root, NUM_CL
                                                          BATCH_SIZE, NUM_CLASES_PER_CLIENT, NUM_CLASSES)
 
 print(user_param)
-users = [user_obj(i, device, MODEL, None, NUM_CLASSES, train_dataloaders[i], **user_param) for i in
+
+users = [user_obj(i, device, MODEL, None, NUM_CLASSES, train_dataloaders[i], **user_param) for i in    #只考虑LDPUser，这行代码为生成NUM_CLIENTS数量的LDP客户端对象，并初始化
          range(NUM_CLIENTS)]  # 在函数调用中，**用于解包字典，将字典中的每个键值对作为关键字参数传递给函数。
-server = server_obj(device, MODEL, None, NUM_CLASSES, **server_param)
+server = server_obj(device, MODEL, None, NUM_CLASSES, **server_param) #只考虑LDPserver，这行代码生成一个LDPServer类对象，初始化时调用了父类的构造函数方法
 for i in range(NUM_CLIENTS):
-    users[i].set_model_state_dict(server.get_model_state_dict())
+    users[i].set_model_state_dict(server.get_model_state_dict())  #初始化全局模型并分发到每个客户端
 best_acc = 0
 for round in range(ROUNDS):
-    random_index = np.random.choice(NUM_CLIENTS, int(sample_rate * NUM_CLIENTS), replace=False)
-    for index in random_index: users[index].train()
+    random_index = np.random.choice(NUM_CLIENTS, int(sample_rate * NUM_CLIENTS), replace=False)  #根据客户端采样率随机选取一定的客户端进行联邦学习本地训练
+    for index in random_index: users[index].train()  #本地进行DPSGD
     if MODE == "LDP":
-        weights_agg = agg_weights([users[index].get_model_state_dict() for index in random_index])
+        weights_agg = agg_weights([users[index].get_model_state_dict() for index in random_index])   #将每个客户端的参数加起来求平均，包括个性化模型和本地模型的参数
         for i in range(NUM_CLIENTS):
-            users[i].set_model_state_dict(weights_agg)
+            users[i].set_model_state_dict(weights_agg)   #在赋值时，仅仅会改变本地模型的参数，人性化模型的参数不变
     else:
         server.agg_updates([users[index].get_model_state_dict() for index in random_index])
         for i in range(NUM_CLIENTS):
             users[i].set_model_state_dict(server.get_model_state_dict())
     print(f"Round: {round + 1}")
-    acc = evaluate_global(users, test_dataloaders, range(NUM_CLIENTS))
+    acc = evaluate_global(users, test_dataloaders, range(NUM_CLIENTS))  #这里感觉有问题......，测试全局模型准确度没有把个性化模型去掉
     if acc > best_acc:
         best_acc = acc
     if MODE == "LDP":

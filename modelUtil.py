@@ -118,7 +118,7 @@ class mnist_fully_connected_IN(nn.Module):
 
     def forward(self,x):
         x = self.norm(x)
-        x = x.view(-1, 28 * 28)
+        x = x.view(-1, 28 * 28) #将输入变为28*28的一维向量
         x = relu(self.fc1(x))
         x = relu(self.fc2(x))
         logits = self.fc3(x)
