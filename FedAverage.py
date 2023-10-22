@@ -141,6 +141,7 @@ for round in range(ROUNDS):
         for i in range(NUM_CLIENTS):
             users[i].set_model_state_dict(server.get_model_state_dict())
     print(f"Round: {round + 1}")
+    for index in random_index: validation(users[index],test_dataloader)  # 本地进行DPSGD
     acc = evaluate_global(users, test_dataloaders, range(NUM_CLIENTS))  #这里感觉有问题......，测试全局模型准确度没有把个性化模型去掉
     if acc > best_acc:
         best_acc = acc
