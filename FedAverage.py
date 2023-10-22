@@ -132,6 +132,9 @@ best_acc = 0
 for round in range(ROUNDS):
     random_index = np.random.choice(NUM_CLIENTS, int(sample_rate * NUM_CLIENTS), replace=False)  #根据客户端采样率随机选取一定的客户端进行联邦学习本地训练
     for index in random_index: users[index].train()  #本地进行DPSGD
+    for k_0,v_0 in users[0].get_model_state_dict().items():
+        print(k_0)
+        print(v_0)
     if MODE == "LDP":
         weights_agg = agg_weights([users[index].get_model_state_dict() for index in random_index])   #将每个客户端的参数加起来求平均，包括个性化模型和本地模型的参数
         for i in range(NUM_CLIENTS):
@@ -140,6 +143,9 @@ for round in range(ROUNDS):
         server.agg_updates([users[index].get_model_state_dict() for index in random_index])
         for i in range(NUM_CLIENTS):
             users[i].set_model_state_dict(server.get_model_state_dict())
+    for k_0,v_0 in users[0].get_model_state_dict().items():
+        print(k_0)
+        print(v_0)
     print(f"Round: {round + 1}")
     for index in random_index: validation(users[index],test_dataloader)  # 本地进行DPSGD
     acc = evaluate_global(users, test_dataloaders, range(NUM_CLIENTS))  #这里感觉有问题......，测试全局模型准确度没有把个性化模型去掉
