@@ -116,8 +116,7 @@ class LDPUser(CDPUser):
                     loss = self.loss_fn(logits, labels)
                     loss.backward()
                     self.optim.step()
-                    self.acc_metric(preds, labels)
+
         self.epsilon = self.privacy_engine.get_epsilon(self.delta)
-        print(f"Client: {self.index} ACC: {self.acc_metric.compute()}, episilon: {self.epsilon}")
-        self.acc_metric.reset()
+        print(f"Client: {self.index} , episilon: {self.epsilon}")
         self.model.to('cpu')
