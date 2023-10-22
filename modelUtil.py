@@ -25,8 +25,8 @@ def validation(user, test_loader):
             # if id==0:
             #     print("测试集：",data[0]) #这边同样DPSGD的验证集也是浮点型的
             data, target = data.to(user.device), target.to(user.device)
-            output = user.model(data)
-            test_loss += user.loss_fn(torch.tensor(output), target).item()
+            logits, output = user.model(data)
+            test_loss += user.loss_fn(logits, target)
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
             num_examples += len(data)
