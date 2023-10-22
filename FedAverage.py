@@ -135,6 +135,10 @@ for round in range(ROUNDS):
     for k_0,v_0 in users[0].get_model_state_dict().items():
         print(k_0)
         print(v_0)
+    for k_0,v_0 in users[1].get_model_state_dict().items():
+        print(k_0)
+        print(v_0)
+    print(".............................................................................")
     if MODE == "LDP":
         weights_agg = agg_weights([users[index].get_model_state_dict() for index in random_index])   #将每个客户端的参数加起来求平均，包括个性化模型和本地模型的参数
         for i in range(NUM_CLIENTS):
@@ -144,6 +148,9 @@ for round in range(ROUNDS):
         for i in range(NUM_CLIENTS):
             users[i].set_model_state_dict(server.get_model_state_dict())
     for k_0,v_0 in users[0].get_model_state_dict().items():
+        print(k_0)
+        print(v_0)
+    for k_0,v_0 in users[1].get_model_state_dict().items():
         print(k_0)
         print(v_0)
     print(f"Round: {round + 1}")
