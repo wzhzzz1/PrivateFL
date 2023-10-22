@@ -13,6 +13,7 @@ import numpy as np
 import torch.nn.functional as func
 
 def validation(user, test_loader):
+    user.model.to(user.device)
     user.model.eval()
     num_examples = 0
     test_loss = 0
