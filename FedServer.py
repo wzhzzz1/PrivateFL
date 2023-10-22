@@ -32,6 +32,15 @@ class CDPServer:
 
     def get_model_state_dict(self):
         return self.model.state_dict()
+    def set_model_state_dict(self, weights):
+        if self.agg == False:
+            for key, value in self.model.state_dict().items():
+                if 'norm' not in key and 'bn' not in key and 'downsample.1' not in key:  #这个downsample是resnet里特有的，norm就是个性化层
+                    self.model.state_dict()[key].data.copy_(weights[key])
+        else:
+            for key, value in self.model.state_dict().items():
+                if 'bn' not in key:
+                    self.model.state_dict()[key].data.copy_(weights[key])
 
     def agg_updates(self, weights):
         with torch.no_grad():

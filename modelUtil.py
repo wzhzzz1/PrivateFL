@@ -34,8 +34,33 @@ def validation(user, test_loader):
     test_loss /= num_examples
     test_acc = 100. * correct / num_examples
 
-    print(f"Client: {user.index} , episilon: {user.epsilon}", f'Test set: Average loss: {test_loss:.4f}, ' f'Accuracy: {correct}/{num_examples} ({test_acc:.2f}%)')
+    print(f"Client: {user.index} , episilon: {user.epsilon}", f'Test set: Average loss: {test_loss}, ' f'Accuracy: {correct}/{num_examples} ({test_acc}%)')
 
+
+
+def validation_server(user, test_loader):
+    user.model.to(user.device)
+    user.model.eval()
+    num_examples = 0
+    test_loss = 0
+    correct = 0
+
+
+    with torch.no_grad():
+        for id,(data, target) in enumerate(test_loader):
+            # if id==0:
+            #     print("测试集：",data[0]) #这边同样DPSGD的验证集也是浮点型的
+            data, target = data.to(user.device), target.to(user.device)
+            _,output = user.model(data.to(torch.float32))
+            test_loss += func.cross_entropy(output, target.to(torch.long), reduction='sum').item()
+            pred = output.max(1, keepdim=True)[1]
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            num_examples += len(data)
+
+    test_loss /= num_examples
+    test_acc = 100. * correct / num_examples
+    print(f"server", f'Test set: Average loss: {test_loss}, ' f'Accuracy: {correct}/{num_examples} ({test_acc}%)')
+    return correct / num_examples
 
 
 def agg_weights(weights):

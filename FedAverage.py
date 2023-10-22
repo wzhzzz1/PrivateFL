@@ -142,10 +142,11 @@ for round in range(ROUNDS):
         server.agg_updates([users[index].get_model_state_dict() for index in random_index])
         for i in range(NUM_CLIENTS):
             users[i].set_model_state_dict(server.get_model_state_dict())
-
+    server.set_model_state_dict(weights_agg)
     print(f"Round: {round + 1}")
     for index in random_index: validation(users[index],test_dataloader)
-    acc = evaluate_global(users, test_dataloaders, range(NUM_CLIENTS))  #这里感觉有问题......，测试全局模型准确度没有把个性化模型去掉
+
+    acc = validation_server(server,test_dataloader)
     if acc > best_acc:
         best_acc = acc
     if MODE == "LDP":
