@@ -15,7 +15,7 @@ from FedServer import LDPServer, CDPServer
 from datetime import date
 import argparse
 import time
-
+from torch.utils.data import DataLoader, ConcatDataset
 start_time = time.time()
 
 
@@ -116,6 +116,10 @@ else:
 train_dataloaders, test_dataloaders = gen_random_loaders(DATA_NAME, root, NUM_CLIENTS,
                                                          ##数据集名字，目录，客户端数量，批次大小，每个客户端分配的标签数量，标签总数量
                                                          BATCH_SIZE, NUM_CLASES_PER_CLIENT, NUM_CLASSES)
+
+combined_dataset = ConcatDataset([d.dataset for d in test_dataloaders])
+batch_size = 64
+test_dataloader = DataLoader(combined_dataset, batch_size=batch_size, shuffle=True)
 
 print(user_param)
 
