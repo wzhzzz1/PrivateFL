@@ -26,7 +26,7 @@ def validation(user, test_loader):
             #     print("测试集：",data[0]) #这边同样DPSGD的验证集也是浮点型的
             data, target = data.to(user.device), target.to(user.device)
             logits, output = user.model(data)
-            test_loss += user.loss_fn(logits, target)
+            test_loss += user.loss_fn(logits, target).item()
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
             num_examples += len(data)
