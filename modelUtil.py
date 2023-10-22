@@ -13,7 +13,6 @@ import numpy as np
 import torch.nn.functional as func
 
 def validation(user, test_loader):
-    user.model.to(user.device)
     user.model.eval()
     num_examples = 0
     test_loss = 0
@@ -25,8 +24,8 @@ def validation(user, test_loader):
             # if id==0:
             #     print("测试集：",data[0]) #这边同样DPSGD的验证集也是浮点型的
             data, target = data.to(user.device), target.to(user.device)
-            logits, output = user.model(data)
-            test_loss += user.loss_fn(logits, target).item()
+            output = user.model(data.to(torch.float32))
+            test_loss += func.cross_entropy(output, target.to(torch.long), reduction='sum').item()
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
             num_examples += len(data)

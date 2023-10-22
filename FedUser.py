@@ -117,5 +117,5 @@ class LDPUser(CDPUser):
                     loss.backward()
                     self.optim.step()
         self.epsilon = self.privacy_engine.get_epsilon(self.delta)
-        print(f"Client: {self.index} , episilon: {self.epsilon}")
+
         self.model.to('cpu')
